@@ -48,7 +48,10 @@ public class DogDB {
 
     }
 
-    public void deleteDog() {
-
+    public boolean deleteDog(int id) throws SQLException {
+        String sql = "DELETE FROM dogs WHERE id = ?";
+        PreparedStatement stmt = conn.prepareStatement(sql);
+        stmt.setInt(1, id);
+        return stmt.executeUpdate() > 0;
     }
 }

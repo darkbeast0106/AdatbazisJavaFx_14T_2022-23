@@ -8,6 +8,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 
 public class DogController {
 
@@ -64,11 +65,11 @@ public class DogController {
         dogTable.getItems().addAll(dogs);
     }
 
-    private void alert(Alert.AlertType alertType, String headerText, String contentText) {
+    private Optional<ButtonType> alert(Alert.AlertType alertType, String headerText, String contentText) {
         Alert alert = new Alert(alertType);
         alert.setHeaderText(headerText);
         alert.setContentText(contentText);
-        alert.showAndWait();
+        return alert.showAndWait();
     }
 
     @FXML
@@ -77,6 +78,31 @@ public class DogController {
 
     @FXML
     public void deleteClick(ActionEvent actionEvent) {
+        int selectedIndex = dogTable.getSelectionModel().getSelectedIndex();
+        if (selectedIndex == -1) {
+            alert(Alert.AlertType.WARNING,
+                    "Törléshez előbb válasszon ki kutyát a táblázatból", "");
+            return;
+        }
+        Optional<ButtonType> optionalButtonType = alert(Alert.AlertType.CONFIRMATION,
+                "Biztos, hogy törölni szeretné a viláasztott kutyát?", "");
+        if (optionalButtonType.isEmpty() ||
+                (!optionalButtonType.get().equals(ButtonType.OK) &&
+                        !optionalButtonType.get().equals(ButtonType.YES))) {
+            return;
+        }
+        Dog selected = dogTable.getSelectionModel().getSelectedItem();
+
+        try {
+            if (db.deleteDog(selected.getId())) {
+                alert(Alert.AlertType.WARNING, "Sikeres törlés", "");
+            } else {
+                alert(Alert.AlertType.WARNING, "Sikertelen törlés", "");
+            }
+            readDogs();
+        } catch (SQLException e) {
+            sqlAlert(e);
+        }
     }
 
     @FXML
